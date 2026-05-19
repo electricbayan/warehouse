@@ -1,79 +1,52 @@
 #include "warehouse.hpp"
 
+Shelf::Shelf(const char *name, Point<float> left_bottom, Point<float> right_top,
+             Point<float> right_bottom, Point<float> left_top, size_t height)
+    : name(name), left_bottom(left_bottom), right_top(right_top),
+      height(height), right_bottom(right_bottom), left_top(left_top) {}
 
-class Shelf {
-public:
-  Point<float> left_bottom, right_top, right_bottom, left_top;
-  float angle;
-  const char *name;
-  size_t height;
-  Shelf(const char *name, Point<float> left_bottom, Point<float> right_top, Point<float> right_bottom,
-    Point<float> left_top, size_t height)
-      : name(name), left_bottom(left_bottom), right_top(right_top), height(height), right_bottom(right_bottom),
-      left_top(left_top) {
+Warehouse::Warehouse(const char *name) : name(name) {
+  points_count = 0;
+  points = nullptr;
+}
 
-      }
-};
+Warehouse::~Warehouse() { delete[] points; }
 
-class Warehouse {
+void Warehouse::add_points(Point<float> *p, size_t size) {
 
-public:
-  size_t points_count;
-  Point<float> *points;
-  const char *name;
-  Point<float> center;
-  Warehouse(const char *name): name(name) {
-    points_count = 0;
-    points = nullptr;
+  if (size < 3) {
+    throw std::logic_error("Warehouse must contain at least 3 points");
+  }
+  bool all_in_line = true;
+  for (size_t i = 0; i < size - 2; i++) {
+    if (!is_line(p[i], p[i + 1], p[i + 3])) {
+      all_in_line = false;
+      break;
+    }
   }
 
-  ~Warehouse() { delete[] points; }
-
-  void add_points(Point<float> *p, size_t size) {
-
-    if (size < 3) {
-      throw std::logic_error("Warehouse must contain at least 3 points");
-    }
-    bool all_in_line = true;
-    for (size_t i = 0; i < size - 2; i++) {
-      if (!is_line(p[i], p[i + 1], p[i + 3])) {
-        all_in_line = false;
-        break;
-      }
-    }
-
-    if (all_in_line) {
-      throw std::logic_error("All points allocated in line");
-    }
-
-    Point<float> *tmp;
-    float center_x, center_y;
-    tmp = new Point<float>[points_count + size];
-    for (size_t i = 0; i < points_count; i++) {
-      tmp[i] = points[i];
-      center_x += points[i].x;
-      center_y += points[i].y;
-    }
-    delete[] points;
-    for (size_t i = points_count; i < points_count + size; i++) {
-      tmp[i] = p[i - points_count];
-      center_x += p[i - points_count].x;
-      center_y += p[i - points_count].y;
-    }
-    points = tmp;
-    points_count += size;
-    center = Point<float>{center_x / points_count, center_y / points_count};
-    sort_around_center(points, points_count, center);
+  if (all_in_line) {
+    throw std::logic_error("All points allocated in line");
   }
 
-  bool contain_points(Shelf shelf) {
-
+  Point<float> *tmp;
+  float center_x, center_y;
+  tmp = new Point<float>[points_count + size];
+  for (size_t i = 0; i < points_count; i++) {
+    tmp[i] = points[i];
+    center_x += points[i].x;
+    center_y += points[i].y;
   }
-};
+  delete[] points;
+  for (size_t i = points_count; i < points_count + size; i++) {
+    tmp[i] = p[i - points_count];
+    center_x += p[i - points_count].x;
+    center_y += p[i - points_count].y;
+  }
+  points = tmp;
+  points_count += size;
+  center = Point<float>{center_x / points_count, center_y / points_count};
+  sort_around_center(points, points_count, center);
+}
 
-class Item {
-public:
-  const char *name;
-  size_t height;
-  Point<float> *coords;
-};
+bool contain_points(Shelf shelf) {}

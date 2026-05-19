@@ -1,3 +1,5 @@
+#include <cstddef>
+
 template <class T> class Point {
 public:
   T x, y;
@@ -7,3 +9,4 @@ public:
 bool is_line(Point<float> a, Point<float> b, Point<float> c) noexcept;
 
 void sort_around_center(Point<float>* polygon, size_t polygon_size, Point<float> center);
+bool contain_point(Point<float> *polygon, const Point<float> &point);

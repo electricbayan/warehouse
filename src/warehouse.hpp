@@ -15,13 +15,13 @@ public:
   Shelf(const char *name, Point<float> left_bottom, Point<float> right_top, float angle);
   void update(const char *name);
   void update(size_t height);
-  void update(size_t height);
 };
 
 class Warehouse {
 
   bool contain_points(Shelf shelf); // точка внутри
   bool contain_lines(Shelf shelf); // отрезки внутри
+  Point<float> center;
   public:
     size_t points_count;
     Point<float> *points;
