@@ -21,6 +21,7 @@ public:
   size_t points_count;
   Point<float> *points;
   const char *name;
+  Point<float> center;
   Warehouse(const char *name): name(name) {
     points_count = 0;
     points = nullptr;
@@ -45,19 +46,27 @@ public:
       throw std::logic_error("All points allocated in line");
     }
 
-    Point<float> *tmp = new Point<float>[points_count + size];
+    Point<float> *tmp;
+    float center_x, center_y;
+    tmp = new Point<float>[points_count + size];
     for (size_t i = 0; i < points_count; i++) {
       tmp[i] = points[i];
+      center_x += points[i].x;
+      center_y += points[i].y;
     }
     delete[] points;
     for (size_t i = points_count; i < points_count + size; i++) {
       tmp[i] = p[i - points_count];
+      center_x += p[i - points_count].x;
+      center_y += p[i - points_count].y;
     }
     points = tmp;
     points_count += size;
+    center = Point<float>{center_x / points_count, center_y / points_count};
+    sort_around_center(points, points_count, center);
   }
 
-  bool contain_point(Shelf shelf) {
+  bool contain_points(Shelf shelf) {
 
   }
 };

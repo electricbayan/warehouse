@@ -8,10 +8,14 @@ public:
   float angle;
   const char *name;
   size_t height;
+  Point<float> center;
   Shelf(const char *name, Point<float> left_bottom, Point<float> right_top, Point<float> right_bottom,
     Point<float> left_top, size_t height);
 
   Shelf(const char *name, Point<float> left_bottom, Point<float> right_top, float angle);
+  void update(const char *name);
+  void update(size_t height);
+  void update(size_t height);
 };
 
 class Warehouse {
@@ -26,6 +30,7 @@ class Warehouse {
     Warehouse(const char *name);
     ~Warehouse();
     void add_points(Point<float> *p, size_t size);
+
 
 };
 
