@@ -2,8 +2,10 @@
 
 Shelf::Shelf(const char *name, Point<float> left_bottom, Point<float> right_top,
              Point<float> right_bottom, Point<float> left_top, size_t height)
-    : name(name), left_bottom(left_bottom), right_top(right_top),
-      height(height), right_bottom(right_bottom), left_top(left_top) {}
+    : name(name), height(height) {
+      delete[] points;
+      points = new Point<float>[4]{left_bottom, left_top, right_top, right_bottom};
+    }
 
 Warehouse::Warehouse(const char *name) : name(name) {
   points_count = 0;
@@ -19,7 +21,7 @@ void Warehouse::add_points(Point<float> *p, size_t size) {
   }
   bool all_in_line = true;
   for (size_t i = 0; i < size - 2; i++) {
-    if (!is_line(p[i], p[i + 1], p[i + 3])) {
+    if (!is_line(p[i], p[i + 1], p[i + 2])) {
       all_in_line = false;
       break;
     }
@@ -30,7 +32,7 @@ void Warehouse::add_points(Point<float> *p, size_t size) {
   }
 
   Point<float> *tmp;
-  float center_x, center_y;
+  float center_x=0, center_y=0;
   tmp = new Point<float>[points_count + size];
   for (size_t i = 0; i < points_count; i++) {
     tmp[i] = points[i];
@@ -49,4 +51,25 @@ void Warehouse::add_points(Point<float> *p, size_t size) {
   sort_around_center(points, points_count, center);
 }
 
-bool contain_points(Shelf shelf) {}
+bool Warehouse::contain_shelf(Shelf shelf) {
+  for (size_t i = 0;i < 4;i++) {
+    if (!contain_point(points, points_count, shelf.points[i])) {
+      return false;
+    }
+  }
+  return contain_lines(shelf);
+}
+
+bool Warehouse::contain_lines(Shelf shelf) {
+
+  for (size_t i=0; i<4;i++) {
+    size_t j=i+1;
+    if (i == 3) {
+      j=0;
+    }
+    if (!contain_segment(points, points_count, shelf.points[i], shelf.points[j])) {
+      return false;
+    }
+  }
+  return true;
+}

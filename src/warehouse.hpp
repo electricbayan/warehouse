@@ -1,10 +1,12 @@
+#pragma once
+
 #include "common.hpp"
 #include <iostream>
 
 
 class Shelf {
 public:
-  Point<float> left_bottom, right_top, right_bottom, left_top;
+  Point<float>* points;
   float angle;
   const char *name;
   size_t height;
@@ -18,11 +20,11 @@ public:
 };
 
 class Warehouse {
-
-  bool contain_points(Shelf shelf); // точка внутри
-  bool contain_lines(Shelf shelf); // отрезки внутри
+  bool contain_lines(Shelf shelf);
   Point<float> center;
-  public:
+
+public:
+  bool contain_shelf(Shelf shelf);
     size_t points_count;
     Point<float> *points;
     const char *name;
