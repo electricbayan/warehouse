@@ -2,10 +2,11 @@
 #include <cstdio>
 #include <iostream>
 
-Warehouse &make_warehouse(const char *name, Point<float> *points,
-                          size_t points_count) {
+Warehouse make_warehouse(const char *name, Point<float> *points,
+                          size_t points_count, HashMap<const char*, Warehouse> wh_map) {
   Warehouse wh(name);
   wh.add_points(points, points_count);
+  wh_map.insert(name, &wh);
   return wh;
 }
 
@@ -23,7 +24,7 @@ char *inspect_warehouse(Warehouse &wh) {
   return result;
 };
 
-Shelf &add_shelf(const char *name, Point<float> *points, size_t points_count,
+Shelf add_shelf(const char *name, Point<float> *points, size_t points_count,
                  size_t height, Warehouse &wh,
                  HashMap<Shelf, Warehouse> wh_sh_table) {
   if (points_count != 4) {

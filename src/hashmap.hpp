@@ -1,9 +1,10 @@
 #pragma once
 
 #include "warehouse.hpp"
+#include <type_traits>
 
-size_t MIN_CAPACITY = 8;
-double MAX_LOAD_FACTOR = 0.75;
+constexpr size_t MIN_CAPACITY = 8;
+constexpr double MAX_LOAD_FACTOR = 0.75;
 
 
 template <class T, class K> class HashMap {
@@ -19,22 +20,41 @@ template <class T, class K> class HashMap {
 
   size_t hash_key(const T &key) const {
     size_t hash = 5381;
-    if (key.name) {
-      for (const char *p = key.name; *p; ++p) {
+    const char* name = nullptr;
+    if constexpr (std::is_same_v<T, const char*>) {
+      name = key;
+    } else {
+      name = key.name;
+    }
+    if (name) {
+      for (const char *p = name; *p; ++p) {
         hash = ((hash << 5) + hash) + static_cast<unsigned char>(*p);
       }
     }
     return hash % bucket_count;
   };
   bool keys_equal(const T &a, const T &b) const {
-    if (a.name == b.name) {
+    const char* a_name = nullptr;
+    const char* b_name = nullptr;
+    if constexpr (std::is_same_v<T, const char*>) {
+      a_name = a;
+    } else {
+      a_name = a.name;
+    }
+    if constexpr (std::is_same_v<T, const char*>) {
+      b_name = b;
+    } else {
+      b_name = b.name;
+    }
+    if (a_name == b_name) {
       return true;
     }
-    if (!a.name || !b.name) {
+    if (!a_name || !b_name) {
       return false;
     }
-    return std::strcmp(a.name, b.name) == 0;
+    return std::strcmp(a_name, b_name) == 0;
   };
+
   void rehash() {
     const size_t old_count = bucket_count;
     Node **old_buckets = buckets;
