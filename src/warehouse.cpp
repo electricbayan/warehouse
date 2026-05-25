@@ -21,7 +21,7 @@ void Warehouse::add_points(Point<float> *p, size_t size) {
   }
   bool all_in_line = true;
   for (size_t i = 0; i < size - 2; i++) {
-    if (!is_line(p[i], p[i + 1], p[i + 2])) {
+    if (rotation(p[i], p[i + 1], p[i + 2]) != 0) {
       all_in_line = false;
       break;
     }
