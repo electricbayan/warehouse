@@ -8,11 +8,11 @@ class Shelf {
 public:
   Point<float> *points;
   float angle;
-  const char *name;
+  std::string name;
   size_t height;
   Point<float> center;
-  Shelf(const char *name, Point<float> left_bottom, Point<float> right_top,
-        Point<float> right_bottom, Point<float> left_top, size_t height);
+  Shelf( std::string name, size_t height, Point<float> left_bottom, Point<float> right_top,
+        Point<float> right_bottom, Point<float> left_top);
 
   Shelf(const char *name, Point<float> left_bottom, Point<float> right_top,
         float angle);
@@ -22,10 +22,12 @@ public:
 
 class Warehouse {
   bool contain_lines(Shelf shelf);
+  bool contain_lines(Point<float>* points);
   Point<float> center;
 
 public:
   bool contain_shelf(Shelf shelf);
+  bool contain_shelf(Point<float>* points);
   size_t points_count;
   Point<float> *points;
   std::string name;

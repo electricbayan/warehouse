@@ -8,6 +8,45 @@
 constexpr size_t MIN_CAPACITY = 8;
 constexpr double MAX_LOAD_FACTOR = 0.75;
 
+template <typename T>
+const char *hashmap_key_name(const T &key) {
+  if constexpr (std::is_same_v<T, const char *>) {
+    return key ? key : "";
+  } else if constexpr (std::is_same_v<T, std::string>) {
+    return key.c_str();
+  } else if constexpr (std::is_same_v<decltype(std::declval<T>().name),
+                                      std::string>) {
+    return key.name.c_str();
+  } else {
+    return key.name;
+  }
+}
+
+template <typename T>
+bool hashmap_keys_equal(const T &a, const T &b) {
+  if constexpr (std::is_same_v<T, std::string>) {
+    return a == b;
+  } else if constexpr (std::is_same_v<decltype(std::declval<T>().name),
+                                      std::string>) {
+    return a.name == b.name;
+  } else if constexpr (std::is_same_v<T, const char *>) {
+    if (a == b) {
+      return true;
+    }
+    if (!a || !b) {
+      return false;
+    }
+    return std::strcmp(a, b) == 0;
+  } else {
+    if (a.name == b.name) {
+      return true;
+    }
+    if (!a.name || !b.name) {
+      return false;
+    }
+    return std::strcmp(a.name, b.name) == 0;
+  }
+}
 
 template <class T, class K> class HashMap {
   struct Node {
@@ -22,44 +61,14 @@ template <class T, class K> class HashMap {
 
   size_t hash_key(const T &key) const {
     size_t hash = 5381;
-    const char* name = nullptr;
-    if constexpr (std::is_same_v<T, const char *>) {
-      name = key;
-    } else if constexpr (std::is_same_v<T, std::string>) {
-      name = key.c_str();
-    } else {
-      name = key.name;
-    }
-    if (name) {
-      for (const char *p = name; *p; ++p) {
-        hash = ((hash << 5) + hash) + static_cast<unsigned char>(*p);
-      }
+    const char *name = hashmap_key_name(key);
+    for (const char *p = name; *p; ++p) {
+      hash = ((hash << 5) + hash) + static_cast<unsigned char>(*p);
     }
     return hash % bucket_count;
   };
   bool keys_equal(const T &a, const T &b) const {
-    const char* a_name = nullptr;
-    const char* b_name = nullptr;
-    if constexpr (std::is_same_v<T, const char *>) {
-      a_name = a;
-      b_name = b;
-    } else if constexpr (std::is_same_v<T, std::string>) {
-      if (a == b) {
-        return true;
-      }
-      a_name = a.c_str();
-      b_name = b.c_str();
-    } else {
-      a_name = a.name;
-      b_name = b.name;
-    }
-    if (a_name == b_name) {
-      return true;
-    }
-    if (!a_name || !b_name) {
-      return false;
-    }
-    return std::strcmp(a_name, b_name) == 0;
+    return hashmap_keys_equal(a, b);
   };
 
   void rehash() {
@@ -141,7 +150,11 @@ public:
       return get(static_cast<T>(name));
     } else {
       T probe{};
-      probe.name = name;
+      if constexpr (std::is_same_v<decltype(probe.name), std::string>) {
+        probe.name = std::string(name);
+      } else {
+        probe.name = name;
+      }
       return get(probe);
     }
   };

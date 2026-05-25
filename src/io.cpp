@@ -21,19 +21,19 @@ void delete_warehouse(Warehouse *wh, HashMap<std::string, Warehouse> *wh_map) {
 
 char *inspect_warehouse(Warehouse &wh) {
   int len = std::snprintf(nullptr, 0,
-                          "========Name: %s\nPoints count: %zu\n========",
+                          "========\nName: %s\nPoints count: %zu\n========",
                           wh.name.c_str(), wh.points_count);
   char *result = new char[len + 1];
 
   std::snprintf(result, len + 1,
-                "========Name: %s\nPoints count: %zu\n========", wh.name.c_str(),
+                "========\nName: %s\nPoints count: %zu\n========", wh.name.c_str(),
                 wh.points_count);
   return result;
 }
 
-Shelf add_shelf(const char *name, Point<float> *points, size_t points_count,
+Shelf add_shelf(const std::string& name, Point<float> *points, size_t points_count,
                 size_t height, Warehouse &wh,
-                HashMap<Shelf, Warehouse> &wh_sh_table) {
+                HashMap<Shelf, Warehouse> &wh_sh_table, HashMap<std::string, Shelf> sh_map) {
   if (points_count != 4) {
     throw std::logic_error("Must be 4 points");
   }
@@ -44,12 +44,13 @@ Shelf add_shelf(const char *name, Point<float> *points, size_t points_count,
   }
   Point<float> center{sum_x / 4, sum_y / 4};
   sort_around_center(points, 4, center);
-  Shelf sh(name, points[0], points[1], points[2], points[3], height);
+  Shelf sh(name, height, points[0], points[1], points[2], points[3]);
   if (!wh.contain_shelf(sh)) {
     delete[] sh.points;
     throw std::logic_error("Shelf outside the warehouse");
   }
   wh_sh_table.insert(sh, &wh);
+  sh_map.insert(name, &sh);
   return sh;
 }
 
@@ -60,12 +61,12 @@ void delete_shelf(Shelf &sh, HashMap<Shelf, Warehouse> &wh_sh_table) {
 }
 
 char *inspect_shelf(Shelf &sh) {
-  int len = std::snprintf(nullptr, 0, "========Name: %s\nHeight: %zu\n========",
-                          sh.name, sh.height);
+  int len = std::snprintf(nullptr, 0, "========\nName: %s\nHeight: %zu\n========",
+                          sh.name.c_str(), sh.height);
   char *result = new char[len + 1];
 
-  std::snprintf(result, len + 1, "========Name: %s\nHeight: %zu\n========",
-                sh.name, sh.height);
+  std::snprintf(result, len + 1, "========\nName: %s\nHeight: %zu\n========",
+                sh.name.c_str(), sh.height);
   return result;
 }
 
