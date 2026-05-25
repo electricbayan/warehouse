@@ -2,6 +2,7 @@
 
 #include "warehouse.hpp"
 #include <type_traits>
+#include <cstring>
 
 constexpr size_t MIN_CAPACITY = 8;
 constexpr double MAX_LOAD_FACTOR = 0.75;

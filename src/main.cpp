@@ -50,7 +50,7 @@ int main() {
           p_iter++;
         }
         Warehouse wh =
-            make_warehouse(args[1].c_str(), points, std::stoul(args[2]));
+            make_warehouse(args[1].c_str(), points, std::stoul(args[2]), warehouse_map);
       } else if (input == "2") {
 
       } else if (input == "3") {

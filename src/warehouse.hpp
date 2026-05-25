@@ -2,7 +2,6 @@
 
 #include "common.hpp"
 #include <iostream>
-#include <cstring>
 
 class Shelf {
 public:

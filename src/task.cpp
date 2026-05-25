@@ -6,7 +6,3 @@ class Task{
   Task(const char* name, Point<float> item_location, Point<float> destination);
 };
 
-
-class Route{
-  Task* tasks;
-};

@@ -3,10 +3,10 @@
 #include <iostream>
 
 Warehouse make_warehouse(const char *name, Point<float> *points,
-                          size_t points_count, HashMap<const char*, Warehouse> wh_map) {
+                          size_t points_count, HashMap<const char*, Warehouse>* wh_map) {
   Warehouse wh(name);
   wh.add_points(points, points_count);
-  wh_map.insert(name, &wh);
+  wh_map->insert(name, &wh);
   return wh;
 }
 

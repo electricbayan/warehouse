@@ -1,8 +1,8 @@
 #include "warehouse.hpp"
 #include "hashmap.hpp"
 
-Warehouse &make_warehouse(const char *name, Point<float> *points,
-                          size_t points_count);
+Warehouse make_warehouse(const char *name, Point<float> *points,
+                          size_t points_count, HashMap<const char*, Warehouse> *wh_map);
 
 void delete_warehouse(Warehouse &wh);
 
