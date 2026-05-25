@@ -2,12 +2,11 @@
 
 Shelf::Shelf(const char *name, Point<float> left_bottom, Point<float> right_top,
              Point<float> right_bottom, Point<float> left_top, size_t height)
-    : name(name), height(height) {
-      delete[] points;
-      points = new Point<float>[4]{left_bottom, left_top, right_top, right_bottom};
-    }
+    : points(nullptr), angle(0), name(name), height(height), center() {
+  points = new Point<float>[4]{left_bottom, left_top, right_top, right_bottom};
+}
 
-Warehouse::Warehouse(const char *name) : name(name) {
+Warehouse::Warehouse(const std::string &name) : name(name) {
   points_count = 0;
   points = nullptr;
 }

@@ -2,6 +2,7 @@
 
 #include "common.hpp"
 #include <iostream>
+#include <string>
 
 class Shelf {
 public:
@@ -27,9 +28,9 @@ public:
   bool contain_shelf(Shelf shelf);
   size_t points_count;
   Point<float> *points;
-  const char *name;
+  std::string name;
 
-  Warehouse(const char *name);
+  Warehouse(const std::string &name);
   ~Warehouse();
   void add_points(Point<float> *p, size_t size);
 };

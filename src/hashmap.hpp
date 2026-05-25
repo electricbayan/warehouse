@@ -1,6 +1,7 @@
 #pragma once
 
 #include "warehouse.hpp"
+#include <string>
 #include <type_traits>
 #include <cstring>
 
@@ -22,8 +23,10 @@ template <class T, class K> class HashMap {
   size_t hash_key(const T &key) const {
     size_t hash = 5381;
     const char* name = nullptr;
-    if constexpr (std::is_same_v<T, const char*>) {
+    if constexpr (std::is_same_v<T, const char *>) {
       name = key;
+    } else if constexpr (std::is_same_v<T, std::string>) {
+      name = key.c_str();
     } else {
       name = key.name;
     }
@@ -37,14 +40,17 @@ template <class T, class K> class HashMap {
   bool keys_equal(const T &a, const T &b) const {
     const char* a_name = nullptr;
     const char* b_name = nullptr;
-    if constexpr (std::is_same_v<T, const char*>) {
+    if constexpr (std::is_same_v<T, const char *>) {
       a_name = a;
+      b_name = b;
+    } else if constexpr (std::is_same_v<T, std::string>) {
+      if (a == b) {
+        return true;
+      }
+      a_name = a.c_str();
+      b_name = b.c_str();
     } else {
       a_name = a.name;
-    }
-    if constexpr (std::is_same_v<T, const char*>) {
-      b_name = b;
-    } else {
       b_name = b.name;
     }
     if (a_name == b_name) {
@@ -129,9 +135,15 @@ public:
     return nullptr;
   };
   K *get(const char *name) const {
-    T probe{};
-    probe.name = name;
-    return get(probe);
+    if constexpr (std::is_same_v<T, std::string>) {
+      return get(std::string(name));
+    } else if constexpr (std::is_same_v<T, const char *>) {
+      return get(static_cast<T>(name));
+    } else {
+      T probe{};
+      probe.name = name;
+      return get(probe);
+    }
   };
   bool contains(const T &key) const { return get(key) != nullptr; };
   bool remove(const T &key) {

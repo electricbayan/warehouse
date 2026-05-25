@@ -1,13 +1,17 @@
-#include "warehouse.hpp"
+#pragma once
+
 #include "hashmap.hpp"
+#include "warehouse.hpp"
+#include <string>
 
-Warehouse make_warehouse(const char *name, Point<float> *points,
-                          size_t points_count, HashMap<const char*, Warehouse> *wh_map);
+Warehouse *make_warehouse(const std::string &name, Point<float> *points,
+                          size_t points_count,
+                          HashMap<std::string, Warehouse> *wh_map);
 
-void delete_warehouse(Warehouse &wh);
+void delete_warehouse(Warehouse *wh, HashMap<std::string, Warehouse> *wh_map);
 
 char *inspect_warehouse(Warehouse &wh);
 
 Shelf add_shelf(const char *name, Point<float> *points, size_t points_count,
-                 size_t height, Warehouse &wh,
-                 HashMap<Shelf, Warehouse> wh_sh_table);
+                size_t height, Warehouse &wh,
+                HashMap<Shelf, Warehouse> &wh_sh_table);
