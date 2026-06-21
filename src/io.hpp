@@ -15,3 +15,4 @@ char *inspect_warehouse(Warehouse &wh);
 Shelf add_shelf(const std::string &name, Point<float> *points, size_t points_count,
                 size_t height, Warehouse &wh,
                 HashMap<Shelf, Warehouse> &wh_sh_table, HashMap<std::string, Shelf>& sh_map);
+char *inspect_shelf(Shelf &sh, Warehouse &wh);

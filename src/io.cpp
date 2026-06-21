@@ -33,10 +33,8 @@ char *inspect_warehouse(Warehouse &wh) {
 
 Shelf add_shelf(const std::string& name, Point<float> *points, size_t points_count,
                 size_t height, Warehouse &wh,
-                HashMap<Shelf, Warehouse> &wh_sh_table, HashMap<std::string, Shelf> sh_map) {
-  if (points_count != 4) {
-    throw std::logic_error("Must be 4 points");
-  }
+                HashMap<Shelf, Warehouse> &wh_sh_table, HashMap<std::string, Shelf>& sh_map) {
+  (void)points_count;
   float sum_x = 0, sum_y = 0;
   for (size_t i = 0; i < 4; i++) {
     sum_x += points[i].x;
@@ -60,13 +58,13 @@ void delete_shelf(Shelf &sh, HashMap<Shelf, Warehouse> &wh_sh_table) {
   sh.points = nullptr;
 }
 
-char *inspect_shelf(Shelf &sh) {
-  int len = std::snprintf(nullptr, 0, "========\nName: %s\nHeight: %zu\n========",
-                          sh.name.c_str(), sh.height);
+char *inspect_shelf(Shelf &sh,Warehouse &wh) {
+  int len = std::snprintf(nullptr, 0, "========\nName: %s\nHeight: %zu\nWarehouse: %s\n========\n",
+                          sh.name.c_str(), sh.height, wh.name.c_str());
   char *result = new char[len + 1];
 
-  std::snprintf(result, len + 1, "========\nName: %s\nHeight: %zu\n========",
-                sh.name.c_str(), sh.height);
+  std::snprintf(result, len + 1, "========\nName: %s\nHeight: %zu\nWarehouse: %s\n========\n",
+                sh.name.c_str(), sh.height, wh.name.c_str());
   return result;
 }
 

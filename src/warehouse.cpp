@@ -1,10 +1,27 @@
 #include "warehouse.hpp"
 
+Shelf::Shelf() : points(nullptr), angle(0), name(), height(0), center() {
+}
+
 Shelf::Shelf(std::string name, size_t height, Point<float> left_bottom,
              Point<float> right_top, Point<float> right_bottom,
              Point<float> left_top)
     : points(nullptr), angle(0), name(name), height(height), center() {
   points = new Point<float>[4]{left_bottom, left_top, right_top, right_bottom};
+}
+
+Shelf::Shelf(const char *name, Point<float> left_bottom, Point<float> right_top,
+             Point<float> right_bottom, Point<float> left_top, size_t height)
+    : Shelf(std::string(name ? name : ""), height, left_bottom, right_top, right_bottom,
+          left_top) {
+}
+
+Shelf::Shelf(const char *name, Point<float> left_bottom, Point<float> right_top, float angle)
+    : points(nullptr), angle(angle), name(name ? name : ""), height(1), center() {
+  points = new Point<float>[4]{left_bottom,
+      Point<float>{left_bottom.x, right_top.y},
+      right_top,
+      Point<float>{right_top.x, left_bottom.y}};
 }
 
 Warehouse::Warehouse(const std::string &name) : name(name) {
@@ -103,4 +120,11 @@ bool Warehouse::contain_lines(Point<float> *shelf_points) {
     }
   }
   return true;
+}
+
+Item::Item() : name(nullptr), height(0), coords(nullptr) {
+}
+
+Item::Item(const char *name, size_t quantity, Point<float> coords)
+    : name(name), height(quantity), coords(new Point<float>(coords)) {
 }

@@ -7,11 +7,12 @@
 using std::string;
 
 void print_command_list() {
-  std::cout << "Command List:\n0. command-list\n1. make-warehouse <name> "
-               "<points-count> <points>\n2. "
-               "delete-warehouse <name>\n3. inspect-warehouse <name>\n\n4. "
-               "add-shelf <warehouse-name> <shelf-name> <floors> <points>\n5. "
-               "delete-shelf <name>\n6. inspect-shelf <name>\n7. update-shelf\n\n";
+  std::cout
+      << "Command List:\n0. command-list\n1. make-warehouse <name> "
+         "<points-count> <points>\n2. "
+         "delete-warehouse <name>\n3. inspect-warehouse <name>\n\n4. "
+         "add-shelf <warehouse-name> <shelf-name> <floors> <points>\n5. "
+         "delete-shelf <name>\n6. inspect-shelf <name>\n7. update-shelf\n8. add-item <shelf-name> <floor> <item-name> <quantity>\n\n";
 }
 
 string *get_args(const string &input, size_t &len) {
@@ -105,7 +106,6 @@ int main() {
       if (wh) {
         char *output = inspect_warehouse(*wh);
         std::cout << output << '\n';
-        delete[] output;
       } else {
         std::cout << "Warehouse doesn't exist\n";
       }
@@ -143,17 +143,39 @@ int main() {
       add_shelf(args[2], points, 4, std::stoull(args[3]), *wh,
                 shelf_warehouse_map, shelf_map);
       delete[] points;
-    } else if (len && args[0].compare(0, 9, "delete-shelf") == 0) {
-      Shelf* sh = shelf_map.get(args[1]);
+    } else if (len && args[0].compare(0, 12, "delete-shelf") == 0) {
+      if (len != 2) {
+        std::cout << "Invalid arg number\n";
+        delete[] args;
+        continue;
+      }
+      Shelf *sh = shelf_map.get(args[1]);
       if (sh) {
         shelf_warehouse_map.remove(*sh);
         shelf_map.remove(sh->name);
         sh->~Shelf();
       } else {
-        std::cout<<"Shelf doesn't exist\n";
+        std::cout << "Shelf doesn't exist\n";
         delete[] args;
         continue;
       }
+
+    } else if (len && args[0].compare(0, 13, "inspect-shelf") == 0) {
+      if (len != 2) {
+        std::cout << "Invalid arg number\n";
+        delete[] args;
+        continue;
+      }
+      Shelf *sh = shelf_map.get(args[1]);
+      if (!sh) {
+        std::cout << "Shelf doesn't exist\n";
+        delete[] args;
+        continue;
+      }
+      Warehouse *wh = shelf_warehouse_map.get(*sh);
+      char *output = inspect_shelf(*sh, *wh);
+      std::cout << output;
+    } else if (len && args[0].compare(0, 8, "add-item") == 0) {
 
     } else {
       std::cout << "To view command list press 0.\nTo escape press Ctrl+C\n";

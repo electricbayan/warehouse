@@ -11,9 +11,12 @@ public:
   std::string name;
   size_t height;
   Point<float> center;
+  Shelf();
   Shelf( std::string name, size_t height, Point<float> left_bottom, Point<float> right_top,
         Point<float> right_bottom, Point<float> left_top);
 
+  Shelf(const char *name, Point<float> left_bottom, Point<float> right_top,
+        Point<float> right_bottom, Point<float> left_top, size_t height);
   Shelf(const char *name, Point<float> left_bottom, Point<float> right_top,
         float angle);
   void update(const char *name);
@@ -42,5 +45,6 @@ public:
   const char *name;
   size_t height;
   Point<float> *coords;
+  Item();
   Item(const char *name, size_t quantity, Point<float> coords);
 };

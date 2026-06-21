@@ -1,35 +1,34 @@
 #pragma once
 
+#include "htable.hpp"
 #include "warehouse.hpp"
+#include <cstring>
+#include <stdexcept>
 #include <string>
 #include <type_traits>
-#include <cstring>
 
 constexpr size_t MIN_CAPACITY = 8;
-constexpr double MAX_LOAD_FACTOR = 0.75;
 
-template <typename T>
-const char *hashmap_key_name(const T &key) {
-  if constexpr (std::is_same_v<T, const char *>) {
+template < typename T >
+const char* hashmap_key_name(const T& key) {
+  if constexpr (std::is_same_v< T, const char* >) {
     return key ? key : "";
-  } else if constexpr (std::is_same_v<T, std::string>) {
+  } else if constexpr (std::is_same_v< T, std::string >) {
     return key.c_str();
-  } else if constexpr (std::is_same_v<decltype(std::declval<T>().name),
-                                      std::string>) {
+  } else if constexpr (std::is_same_v< decltype(std::declval< T >().name), std::string >) {
     return key.name.c_str();
   } else {
-    return key.name;
+    return key.name ? key.name : "";
   }
 }
 
-template <typename T>
-bool hashmap_keys_equal(const T &a, const T &b) {
-  if constexpr (std::is_same_v<T, std::string>) {
+template < typename T >
+bool hashmap_keys_equal(const T& a, const T& b) {
+  if constexpr (std::is_same_v< T, std::string >) {
     return a == b;
-  } else if constexpr (std::is_same_v<decltype(std::declval<T>().name),
-                                      std::string>) {
+  } else if constexpr (std::is_same_v< decltype(std::declval< T >().name), std::string >) {
     return a.name == b.name;
-  } else if constexpr (std::is_same_v<T, const char *>) {
+  } else if constexpr (std::is_same_v< T, const char* >) {
     if (a == b) {
       return true;
     }
@@ -48,134 +47,91 @@ bool hashmap_keys_equal(const T &a, const T &b) {
   }
 }
 
-template <class T, class K> class HashMap {
-  struct Node {
-    T key;
-    K *value;
-    Node *next;
-  };
-
-  Node **buckets;
-  size_t bucket_count;
-  size_t size;
-
-  size_t hash_key(const T &key) const {
+template < typename T >
+struct HashMapHash {
+  size_t operator()(const T& key) const {
     size_t hash = 5381;
-    const char *name = hashmap_key_name(key);
-    for (const char *p = name; *p; ++p) {
-      hash = ((hash << 5) + hash) + static_cast<unsigned char>(*p);
+    const char* name = hashmap_key_name(key);
+    for (const char* p = name; *p; ++p) {
+      hash = ((hash << 5) + hash) + static_cast< unsigned char >(*p);
     }
-    return hash % bucket_count;
-  };
-  bool keys_equal(const T &a, const T &b) const {
+    return hash;
+  }
+};
+
+template < typename T >
+struct HashMapEqual {
+  bool operator()(const T& a, const T& b) const {
     return hashmap_keys_equal(a, b);
-  };
+  }
+};
 
-  void rehash() {
-    const size_t old_count = bucket_count;
-    Node **old_buckets = buckets;
+template < class T, class K >
+class HashMap {
+  using Table = volkovich::HashTable< T, K*, HashMapHash< T >, HashMapEqual< T > >;
 
-    bucket_count *= 2;
-    buckets = new Node *[bucket_count]();
-    size = 0;
+  Table table_;
 
-    for (size_t i = 0; i < old_count; i++) {
-      Node *node = old_buckets[i];
-      while (node) {
-        insert(node->key, node->value);
-        Node *next = node->next;
-        delete node;
-        node = next;
-      }
-    }
-
-    delete[] old_buckets;
-  };
-
-public:
-  explicit HashMap(size_t initial_capacity = 16)
-      : buckets(nullptr), bucket_count(0), size(0) {
-    if (initial_capacity < MIN_CAPACITY) {
-      initial_capacity = MIN_CAPACITY;
-    }
-    bucket_count = initial_capacity;
-    buckets = new Node *[bucket_count]();
-  };
-
-  ~HashMap() {
-    for (size_t i = 0; i < bucket_count; i++) {
-      Node *node = buckets[i];
-      while (node) {
-        Node *next = node->next;
-        delete node;
-        node = next;
-      }
-    }
-    delete[] buckets;
-  };
-
-  HashMap(const HashMap &) = delete;
-  HashMap &operator=(const HashMap &) = delete;
-
-  void insert(const T &key, K *value) {
-    const size_t index = hash_key(key);
-    for (Node *node = buckets[index]; node; node = node->next) {
-      if (keys_equal(node->key, key)) {
-        node->value = value;
-        return;
-      }
-    }
-
-    Node *node = new Node{key, value, buckets[index]};
-    buckets[index] = node;
-    size++;
-
-    if (static_cast<double>(size) / bucket_count > MAX_LOAD_FACTOR) {
-      rehash();
-    }
-  };
-  K *get(const T &key) const {
-    const size_t index = hash_key(key);
-    for (Node *node = buckets[index]; node; node = node->next) {
-      if (keys_equal(node->key, key)) {
-        return node->value;
-      }
-    }
-    return nullptr;
-  };
-  K *get(const char *name) const {
-    if constexpr (std::is_same_v<T, std::string>) {
-      return get(std::string(name));
-    } else if constexpr (std::is_same_v<T, const char *>) {
-      return get(static_cast<T>(name));
+  T key_from_name(const char* name) const {
+    if constexpr (std::is_same_v< T, std::string >) {
+      return std::string(name ? name : "");
+    } else if constexpr (std::is_same_v< T, const char* >) {
+      return name;
     } else {
       T probe{};
-      if constexpr (std::is_same_v<decltype(probe.name), std::string>) {
-        probe.name = std::string(name);
+      if constexpr (std::is_same_v< decltype(probe.name), std::string >) {
+        probe.name = std::string(name ? name : "");
       } else {
         probe.name = name;
       }
-      return get(probe);
+      return probe;
     }
-  };
-  bool contains(const T &key) const { return get(key) != nullptr; };
-  bool remove(const T &key) {
-    const size_t index = hash_key(key);
-    Node *prev = nullptr;
-    for (Node *node = buckets[index]; node; node = node->next) {
-      if (keys_equal(node->key, key)) {
-        if (prev) {
-          prev->next = node->next;
-        } else {
-          buckets[index] = node->next;
-        }
-        delete node;
-        size--;
-        return true;
-      }
-      prev = node;
+  }
+
+ public:
+  explicit HashMap(size_t initial_capacity = 16)
+      : table_(HashMapHash< T >{},
+            initial_capacity < MIN_CAPACITY ? MIN_CAPACITY : initial_capacity,
+            initial_capacity < MIN_CAPACITY ? MIN_CAPACITY : initial_capacity, 1) {
+  }
+
+  HashMap(const HashMap&) = delete;
+  HashMap& operator=(const HashMap&) = delete;
+
+  void insert(const T& key, K* value) {
+    if (!value) {
+      throw std::invalid_argument("HashMap value must not be null");
     }
-    return false;
-  };
-  size_t count() const { return size; };
+    K** stored = table_.find(key);
+    if (stored) {
+      *stored = value;
+      return;
+    }
+    table_.add(key, value);
+  }
+
+  K* get(const T& key) const {
+    K* const* value = table_.find(key);
+    return value ? *value : nullptr;
+  }
+
+  K* get(const char* name) const {
+    return get(key_from_name(name));
+  }
+
+  bool contains(const T& key) const {
+    return table_.has(key);
+  }
+
+  bool remove(const T& key) {
+    if (!table_.has(key)) {
+      return false;
+    }
+    table_.drop(key);
+    return true;
+  }
+
+  size_t count() const {
+    return table_.table_size();
+  }
 };
