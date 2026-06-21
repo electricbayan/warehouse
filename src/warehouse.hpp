@@ -42,9 +42,10 @@ public:
 
 class Item {
 public:
-  const char *name;
-  size_t height;
-  Point<float> *coords;
+  std::string name;
+  size_t floor;
+  size_t quantity;
+  Point<float> coords;
   Item();
-  Item(const char *name, size_t quantity, Point<float> coords);
+  Item(const std::string &name, size_t floor, size_t quantity, Point<float> coords);
 };

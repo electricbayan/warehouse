@@ -12,7 +12,16 @@ void delete_warehouse(Warehouse *wh, HashMap<std::string, Warehouse> *wh_map);
 
 char *inspect_warehouse(Warehouse &wh);
 
-Shelf add_shelf(const std::string &name, Point<float> *points, size_t points_count,
-                size_t height, Warehouse &wh,
-                HashMap<Shelf, Warehouse> &wh_sh_table, HashMap<std::string, Shelf>& sh_map);
+Shelf *add_shelf(const std::string &name, Point<float> *points, size_t points_count,
+                 size_t height, Warehouse &wh,
+                 HashMap<Shelf, Warehouse> &wh_sh_table,
+                 HashMap<std::string, Shelf> &sh_map);
 char *inspect_shelf(Shelf &sh, Warehouse &wh);
+
+Item *add_item(const std::string &name, size_t floor, size_t quantity, Shelf &sh,
+               HashMap<std::string, Item> &item_map,
+               HashMap<Item, Shelf> &item_shelf_map);
+void delete_item(Item *item, HashMap<std::string, Item> &item_map,
+                 HashMap<Item, Shelf> &item_shelf_map);
+void update_item(Item &item, size_t quantity);
+char *inspect_item(Item &item, Shelf &sh, Warehouse &wh);

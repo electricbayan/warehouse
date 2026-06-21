@@ -1,4 +1,7 @@
 #include "io.hpp"
+#include "graph.hpp"
+#include <cmath>
+#include <functional>
 #include <iostream>
 #include <sstream>
 #include <stdexcept>
@@ -6,13 +9,33 @@
 
 using std::string;
 
+using RouteGraph = volkovich::Graph<std::string, volkovich::SipHash, std::equal_to<std::string>>;
+
 void print_command_list() {
   std::cout
       << "Command List:\n0. command-list\n1. make-warehouse <name> "
          "<points-count> <points>\n2. "
          "delete-warehouse <name>\n3. inspect-warehouse <name>\n\n4. "
          "add-shelf <warehouse-name> <shelf-name> <floors> <points>\n5. "
-         "delete-shelf <name>\n6. inspect-shelf <name>\n7. update-shelf\n8. add-item <shelf-name> <floor> <item-name> <quantity>\n\n";
+         "delete-shelf <name>\n6. inspect-shelf <name>\n7. update-shelf\n8. "
+         "add-item <warehouse-name> <shelf-name> <floor> <item-name> <quantity>\n9. "
+         "delete-item <warehouse-name> <shelf-name> <item-name>\n10. "
+         "update-item <warehouse-name> <shelf-name> <item-name> <quantity>\n11. "
+         "inspect-item <warehouse-name> <shelf-name> <item-name>\n12. "
+         "add-edge <warehouse-name> <shelf-name> <item-name> <x> <y>\n13. "
+         "delete-edge <warehouse-name> <shelf-name> <item-name> <x> <y>\n\n";
+}
+
+std::string point_vertex(Point<float> point) {
+  std::ostringstream out;
+  out << point.x << ',' << point.y;
+  return out.str();
+}
+
+int edge_weight(Point<float> from, Point<float> to) {
+  const float dx = from.x - to.x;
+  const float dy = from.y - to.y;
+  return static_cast<int>(std::round(std::sqrt(dx * dx + dy * dy)));
 }
 
 string *get_args(const string &input, size_t &len) {
@@ -62,9 +85,10 @@ int main() {
   HashMap<Shelf, Warehouse> shelf_warehouse_map;
   HashMap<std::string, Warehouse> warehouse_map;
   HashMap<std::string, Shelf> shelf_map;
-  HashMap<Item, Shelf> item_map;
+  HashMap<std::string, Item> item_map;
+  HashMap<Item, Shelf> item_shelf_map;
+  RouteGraph route_graph;
   (void)shelf_warehouse_map;
-  (void)item_map;
 
   print_command_list();
   while (true) {
@@ -113,7 +137,7 @@ int main() {
       Warehouse *wh = warehouse_map.get(args[1]);
       if (wh) {
         warehouse_map.remove(wh->name);
-        wh->~Warehouse();
+        delete wh;
       } else {
         std::cout << "Warehouse doesn't exist\n";
       }
@@ -153,7 +177,8 @@ int main() {
       if (sh) {
         shelf_warehouse_map.remove(*sh);
         shelf_map.remove(sh->name);
-        sh->~Shelf();
+        delete[] sh->points;
+        delete sh;
       } else {
         std::cout << "Shelf doesn't exist\n";
         delete[] args;
@@ -175,8 +200,175 @@ int main() {
       Warehouse *wh = shelf_warehouse_map.get(*sh);
       char *output = inspect_shelf(*sh, *wh);
       std::cout << output;
+      delete[] output;
     } else if (len && args[0].compare(0, 8, "add-item") == 0) {
-
+      if (len != 6) {
+        std::cout << "Invalid arg number\n";
+        delete[] args;
+        continue;
+      }
+      Warehouse *wh = warehouse_map.get(args[1]);
+      Shelf *sh = shelf_map.get(args[2]);
+      if (!wh) {
+        std::cout << "Warehouse doesn't exist\n";
+        delete[] args;
+        continue;
+      }
+      if (!sh || shelf_warehouse_map.get(*sh) != wh) {
+        std::cout << "Shelf doesn't exist\n";
+        delete[] args;
+        continue;
+      }
+      try {
+        add_item(args[4], std::stoull(args[3]), std::stoull(args[5]), *sh,
+                 item_map, item_shelf_map);
+      } catch (const std::exception &e) {
+        std::cout << e.what() << '\n';
+      }
+    } else if (len && args[0].compare(0, 11, "delete-item") == 0) {
+      if (len != 4) {
+        std::cout << "Invalid arg number\n";
+        delete[] args;
+        continue;
+      }
+      Warehouse *wh = warehouse_map.get(args[1]);
+      Shelf *sh = shelf_map.get(args[2]);
+      Item *item = item_map.get(args[3]);
+      if (!wh) {
+        std::cout << "Warehouse doesn't exist\n";
+        delete[] args;
+        continue;
+      }
+      if (!sh || shelf_warehouse_map.get(*sh) != wh) {
+        std::cout << "Shelf doesn't exist\n";
+        delete[] args;
+        continue;
+      }
+      if (!item || item_shelf_map.get(*item) != sh) {
+        std::cout << "Item doesn't exist\n";
+        delete[] args;
+        continue;
+      }
+      delete_item(item, item_map, item_shelf_map);
+    } else if (len && args[0].compare(0, 11, "update-item") == 0) {
+      if (len != 5) {
+        std::cout << "Invalid arg number\n";
+        delete[] args;
+        continue;
+      }
+      Warehouse *wh = warehouse_map.get(args[1]);
+      Shelf *sh = shelf_map.get(args[2]);
+      Item *item = item_map.get(args[3]);
+      if (!wh) {
+        std::cout << "Warehouse doesn't exist\n";
+        delete[] args;
+        continue;
+      }
+      if (!sh || shelf_warehouse_map.get(*sh) != wh) {
+        std::cout << "Shelf doesn't exist\n";
+        delete[] args;
+        continue;
+      }
+      if (!item || item_shelf_map.get(*item) != sh) {
+        std::cout << "Item doesn't exist\n";
+        delete[] args;
+        continue;
+      }
+      try {
+        update_item(*item, std::stoull(args[4]));
+      } catch (const std::exception &e) {
+        std::cout << e.what() << '\n';
+      }
+    } else if (len && args[0].compare(0, 12, "inspect-item") == 0) {
+      if (len != 4) {
+        std::cout << "Invalid arg number\n";
+        delete[] args;
+        continue;
+      }
+      Warehouse *wh = warehouse_map.get(args[1]);
+      Shelf *sh = shelf_map.get(args[2]);
+      Item *item = item_map.get(args[3]);
+      if (!wh) {
+        std::cout << "Warehouse doesn't exist\n";
+        delete[] args;
+        continue;
+      }
+      if (!sh || shelf_warehouse_map.get(*sh) != wh) {
+        std::cout << "Shelf doesn't exist\n";
+        delete[] args;
+        continue;
+      }
+      if (!item || item_shelf_map.get(*item) != sh) {
+        std::cout << "Item doesn't exist\n";
+        delete[] args;
+        continue;
+      }
+      char *output = inspect_item(*item, *sh, *wh);
+      std::cout << output;
+      delete[] output;
+    } else if (len && args[0].compare(0, 8, "add-edge") == 0) {
+      if (len != 6) {
+        std::cout << "Invalid arg number\n";
+        delete[] args;
+        continue;
+      }
+      Warehouse *wh = warehouse_map.get(args[1]);
+      Shelf *sh = shelf_map.get(args[2]);
+      Item *item = item_map.get(args[3]);
+      if (!wh) {
+        std::cout << "Warehouse doesn't exist\n";
+        delete[] args;
+        continue;
+      }
+      if (!sh || shelf_warehouse_map.get(*sh) != wh) {
+        std::cout << "Shelf doesn't exist\n";
+        delete[] args;
+        continue;
+      }
+      if (!item || item_shelf_map.get(*item) != sh) {
+        std::cout << "Item doesn't exist\n";
+        delete[] args;
+        continue;
+      }
+      Point<float> destination{std::stof(args[4]), std::stof(args[5])};
+      if (!contain_point(wh->points, wh->points_count, destination)) {
+        std::cout << "Point outside warehouse\n";
+        delete[] args;
+        continue;
+      }
+      const std::string from = item->name;
+      const std::string to = point_vertex(destination);
+      route_graph.addEdge(from, to, edge_weight(item->coords, destination));
+    } else if (len && args[0].compare(0, 11, "delete-edge") == 0) {
+      if (len != 6) {
+        std::cout << "Invalid arg number\n";
+        delete[] args;
+        continue;
+      }
+      Warehouse *wh = warehouse_map.get(args[1]);
+      Shelf *sh = shelf_map.get(args[2]);
+      Item *item = item_map.get(args[3]);
+      if (!wh) {
+        std::cout << "Warehouse doesn't exist\n";
+        delete[] args;
+        continue;
+      }
+      if (!sh || shelf_warehouse_map.get(*sh) != wh) {
+        std::cout << "Shelf doesn't exist\n";
+        delete[] args;
+        continue;
+      }
+      if (!item || item_shelf_map.get(*item) != sh) {
+        std::cout << "Item doesn't exist\n";
+        delete[] args;
+        continue;
+      }
+      Point<float> destination{std::stof(args[4]), std::stof(args[5])};
+      const std::string from = item->name;
+      const std::string to = point_vertex(destination);
+      if (!route_graph.removeEdge(from, to, edge_weight(item->coords, destination))) {
+        std::cout << "Edge doesn't exist\n";
+      }
     } else {
       std::cout << "To view command list press 0.\nTo escape press Ctrl+C\n";
     }

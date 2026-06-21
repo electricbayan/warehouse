@@ -6,7 +6,8 @@ Shelf::Shelf() : points(nullptr), angle(0), name(), height(0), center() {
 Shelf::Shelf(std::string name, size_t height, Point<float> left_bottom,
              Point<float> right_top, Point<float> right_bottom,
              Point<float> left_top)
-    : points(nullptr), angle(0), name(name), height(height), center() {
+    : points(nullptr), angle(0), name(name), height(height),
+      center{(left_bottom.x + right_top.x) / 2, (left_bottom.y + right_top.y) / 2} {
   points = new Point<float>[4]{left_bottom, left_top, right_top, right_bottom};
 }
 
@@ -122,9 +123,9 @@ bool Warehouse::contain_lines(Point<float> *shelf_points) {
   return true;
 }
 
-Item::Item() : name(nullptr), height(0), coords(nullptr) {
+Item::Item() : name(), floor(0), quantity(0), coords() {
 }
 
-Item::Item(const char *name, size_t quantity, Point<float> coords)
-    : name(name), height(quantity), coords(new Point<float>(coords)) {
+Item::Item(const std::string &name, size_t floor, size_t quantity, Point<float> coords)
+    : name(name), floor(floor), quantity(quantity), coords(coords) {
 }
