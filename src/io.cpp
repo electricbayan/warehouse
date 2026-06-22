@@ -42,7 +42,7 @@ Shelf *add_shelf(const std::string& name, Point<float> *points, size_t points_co
   }
   Point<float> center{sum_x / 4, sum_y / 4};
   sort_around_center(points, 4, center);
-  Shelf sh(name, height, points[0], points[1], points[2], points[3]);
+  Shelf sh(name, height, points[0], points[2], points[1], points[3]);
   if (!wh.contain_shelf(sh)) {
     delete[] sh.points;
     throw std::logic_error("Shelf outside the warehouse");

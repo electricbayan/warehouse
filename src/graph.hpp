@@ -245,6 +245,19 @@ namespace volkovich {
       return false;
     }
 
+    template < class Callback >
+    void forEachAdjacent(const Vertex& from, Callback callback) const {
+      const EdgeList* edges_from = graph_.find(from);
+      if (!edges_from) {
+        return;
+      }
+      for (size_t i = 0; i < edges_from->count; ++i) {
+        for (size_t j = 0; j < edges_from->edges[i].weight_size; ++j) {
+          callback(edges_from->edges[i].to, edges_from->edges[i].weight[j]);
+        }
+      }
+    }
+
     void mergeFrom(const Graph& other) {
       for (auto it = other.graph_.begin(); it != other.graph_.end(); ++it) {
         if (!hasVertex(it->key)) {

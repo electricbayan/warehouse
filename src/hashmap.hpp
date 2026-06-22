@@ -89,6 +89,9 @@ class HashMap {
   }
 
  public:
+  using iterator = typename Table::iterator;
+  using constIterator = typename Table::constIterator;
+
   explicit HashMap(size_t initial_capacity = 16)
       : table_(HashMapHash< T >{},
             initial_capacity < MIN_CAPACITY ? MIN_CAPACITY : initial_capacity,
@@ -133,5 +136,21 @@ class HashMap {
 
   size_t count() const {
     return table_.table_size();
+  }
+
+  iterator begin() {
+    return table_.begin();
+  }
+
+  iterator end() {
+    return table_.end();
+  }
+
+  constIterator begin() const {
+    return table_.begin();
+  }
+
+  constIterator end() const {
+    return table_.end();
   }
 };
